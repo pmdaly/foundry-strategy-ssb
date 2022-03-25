@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.8.12;
+pragma solidity 0.6.12;
 pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {ExtendedDSTest} from "./ExtendedDSTest.sol";
 import {stdCheats} from "forge-std/stdlib.sol";
 import {Vm} from "forge-std/Vm.sol";
