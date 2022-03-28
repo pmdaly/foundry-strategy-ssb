@@ -4,9 +4,9 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/brockelmore/forge-std
-[submodule "lib/yearn-vaults"]
-	path = lib/yearn-vaults
-	url = https://github.com/yearn/yearn-vaults
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "lib/yearn-vaults"]
+	path = lib/yearn-vaults
+	url = https://github.com/yearn/yearn-vaults
