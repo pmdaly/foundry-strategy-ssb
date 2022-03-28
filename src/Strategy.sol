@@ -29,7 +29,6 @@ contract Strategy is BaseStrategy {
     uint8 public numTokens;
     uint8 public tokenIndex;
     bool public doSellRewards = true;
-    address public healthCheck;
 
     struct SwapSteps {
         bytes32[] poolIds;
@@ -52,15 +51,6 @@ contract Strategy is BaseStrategy {
     uint256 public lastDepositTime;
     uint256 internal constant basisOne = 10000;
     bool internal isOriginal = true;
-
-    // TODO: not sure where this is defined, temp fix for now
-    modifier onlyVaultManagers() {
-        require(
-            msg.sender == vault.management(),
-            "Only Vault Managers can use this function"
-        );
-        _;
-    }
 
     constructor(
         address _vault,
