@@ -37,8 +37,8 @@ interface IVault is IERC20 {
         address token,
         address governance,
         address rewards,
-        string memory name,
-        string memory symbol,
+        string memory nameOverride,
+        string memory symbolOverride,
         address guardian,
         address management
     ) external;
