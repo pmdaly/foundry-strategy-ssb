@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity 0.6.12;
-pragma abicoder v2;
+pragma experimental ABIEncoderV2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -11,10 +11,6 @@ import {IVault} from "../../interfaces/Vault.sol";
 
 // NOTE: if the name of the strat or file changes this needs to be updated
 import {Strategy} from "../../Strategy.sol";
-
-// Artifact paths for deploying from the deps folder, assumes that the command is run from
-// the project root.
-string constant vaultArtifact = "artifacts/Vault.json";
 
 // Base fixture deploying Vault
 contract StrategyFixture is ExtendedDSTest, stdCheats {
@@ -44,6 +40,19 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     // Used for integer approximation
     uint256 public constant DELTA = 10**5;
+
+    // Artifact paths for deploying from the deps folder, assumes that the command is run from
+    // the project root.
+    string constant vaultArtifact = "artifacts/Vault.json";
+
+
+    // Strategy constants
+    address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    address public balancerPool = 0x06Df3b2bbB68adc8B0e302443692037ED9f91b42;
+    uint256 public maxSlippageIn = 5;
+    uint256 public maxSlippageOut = 5;
+    uint256 public maxSingleDeposit = 100_000;
+    uint256 public minDepositPeriod = 2 * 60 * 60;
 
     function setUp() public virtual {
         _setTokenAddrs();
@@ -112,8 +121,15 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     // Deploys a strategy
     function deployStrategy(address _vault) public returns (address) {
-        Strategy _strategy = new Strategy(_vault);
-
+        Strategy _strategy = new Strategy(
+            _vault,
+            balancerVault,
+            balancerPool,
+            maxSlippageIn,
+            maxSlippageOut,
+            maxSingleDeposit,
+            minDepositPeriod
+        );
         return address(_strategy);
     }
 
