@@ -9,4 +9,4 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "lib/yearn-vaults"]
 	path = lib/yearn-vaults
-	url = https://github.com/yearn/yearn-vaults
+	url = https://github.com/storming0x/yearn-vaults
