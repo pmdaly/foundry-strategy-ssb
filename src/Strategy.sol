@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0
 // Feel free to change the license, but this is what we use
 
-// Feel free to change this version of Solidity. We support >=0.6.0 <0.7.0;
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
+pragma abicoder v2;
 
 // These are the core Yearn libraries
 import {BaseStrategy, StrategyParams} from "@yearnvaults/contracts/BaseStrategy.sol";
-import {SafeERC20, SafeMath, IERC20, Address} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {SafeERC20, IERC20, Address} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {Math} from "@openzeppelin/contracts/math/Math.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import "./interfaces/BalancerV2.sol";
 
 interface IName {
@@ -190,7 +190,7 @@ contract Strategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
-        if (now.sub(lastDepositTime) < minDepositPeriod) {
+        if (block.timestamp.sub(lastDepositTime) < minDepositPeriod) {
             return;
         }
 
@@ -203,7 +203,7 @@ contract Strategy is BaseStrategy {
             bytes memory userData = abi.encode(IBalancerVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, maxAmountsIn, expectedBptOut);
             IBalancerVault.JoinPoolRequest memory request = IBalancerVault.JoinPoolRequest(assets, maxAmountsIn, userData, false);
             balancerVault.joinPool(balancerPoolId, address(this), address(this), request);
-            lastDepositTime = now;
+            lastDepositTime = block.timestamp;
         }
     }
 
@@ -246,7 +246,7 @@ contract Strategy is BaseStrategy {
     function ethToWant(uint256 _amtInWei) public view override returns (uint256){}
 
     function tendTrigger(uint256 callCostInWei) public view override returns (bool) {
-        return now.sub(lastDepositTime) > minDepositPeriod && balanceOfWant() > 0;
+        return block.timestamp.sub(lastDepositTime) > minDepositPeriod && balanceOfWant() > 0;
     }
 
     // HELPERS //
@@ -278,9 +278,9 @@ contract Strategy is BaseStrategy {
                 balancerVault.batchSwap(IBalancerVault.SwapKind.GIVEN_IN,
                     steps,
                     swapSteps[i].assets,
-                    IBalancerVault.FundManagement(address(this), false, address(this), false),
+                    IBalancerVault.FundManagement(address(this), false, payable(this), false),
                     limits,
-                    now + 10);
+                    block.timestamp + 10);
             }
         }
     }
@@ -354,7 +354,7 @@ contract Strategy is BaseStrategy {
             minAmountsOut[tokenIndex] = bptsToTokens(_amountBpts).mul(basisOne.sub(maxSlippageOut)).div(basisOne);
             bytes memory userData = abi.encode(IBalancerVault.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, _amountBpts, tokenIndex);
             IBalancerVault.ExitPoolRequest memory request = IBalancerVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
-            balancerVault.exitPool(balancerPoolId, address(this), address(this), request);
+            balancerVault.exitPool(balancerPoolId, address(this), payable(this), request);
         }
     }
 

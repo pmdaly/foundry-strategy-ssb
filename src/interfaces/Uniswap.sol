@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity >=0.6.0 <0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.12;
+pragma abicoder v2;
 
 interface IUniswapV2Router01 {
     function factory() external pure returns (address);

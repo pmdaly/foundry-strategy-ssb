@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.12;
+pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ExtendedDSTest} from "./ExtendedDSTest.sol";
 import {stdCheats} from "forge-std/stdlib.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {IVault} from "../../interfaces/Vault.sol";
+import {console} from "./console.sol";
 
 // NOTE: if the name of the strat or file changes this needs to be updated
 import {Strategy} from "../../Strategy.sol";
@@ -61,6 +62,8 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         weth = IERC20(tokenAddrs["WETH"]);
         want = IERC20(tokenAddrs["DAI"]);
 
+        console.log("strategy deploying");
+
         deployVaultAndStrategy(
             address(want),
             gov,
@@ -72,6 +75,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             keeper,
             strategist
         );
+        console.log("strategy deployed");
 
         // add more labels to make your traces readable
         vm_std_cheats.label(address(vault), "Vault");
@@ -150,6 +154,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         vault = IVault(_vault);
 
         vm_std_cheats.prank(gov);
+        console.log("prank init");
         vault.initialize(
             _token,
             _gov,
@@ -162,7 +167,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
         vm_std_cheats.prank(_strategist);
         _strategy = deployStrategy(_vault);
-        strategy = Strategy(_strategy);
+        strategy = Strategy(payable(_strategy));
 
         vm_std_cheats.prank(_strategist);
         strategy.setKeeper(_keeper);

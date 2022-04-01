@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity >=0.6.0 <0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.12;
+pragma abicoder v2;
 
-import {SafeERC20, SafeMath, IERC20, Address} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {SafeERC20, IERC20, Address} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+ 
 
 interface IBalancerPool is IERC20 {
     enum SwapKind {GIVEN_IN, GIVEN_OUT}
