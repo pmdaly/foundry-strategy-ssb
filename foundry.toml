@@ -2,6 +2,7 @@
 src = 'src'
 out = 'out'
 libs = ['lib']
+fuzz_runs = 16 # move back to 256+ after full migration of tests
 remappings = [
     'ds-test/=lib/ds-test/src/',
     '@yearnvaults/=lib/yearn-vaults/',

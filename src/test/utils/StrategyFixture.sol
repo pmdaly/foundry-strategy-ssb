@@ -67,14 +67,13 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     function setUp() public virtual {
         _setTokenAddrs();
-        _setTokenAddrs();
+        _setTokenPrices();
 
         // Choose a token from the tokenAddrs mapping, see _setTokenAddrs for options
         string memory token = "DAI";
         weth = IERC20(tokenAddrs["WETH"]);
         want = IERC20(tokenAddrs[token]);
 
-        console.log("strategy deploying");
         deployVaultAndStrategy(
             address(want),
             gov,
@@ -86,7 +85,6 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             keeper,
             strategist
         );
-        console.log("strategy deployed");
 
         minFuzzAmt = 10**vault.decimals() / 10;
         maxFuzzAmt =
@@ -172,7 +170,6 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         _vault = deployCode(vaultArtifact);
         vault = IVault(_vault);
 
-        console.log("vault");
         vm_std_cheats.prank(gov);
         vault.initialize(
             _token,
@@ -183,7 +180,6 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             _guardian,
             _management
         );
-        console.log("vault initialized");
 
         vm_std_cheats.prank(_strategist);
         _strategy = deployStrategy(_vault);
