@@ -13,6 +13,10 @@ import {console} from "./console.sol";
 // NOTE: if the name of the strat or file changes this needs to be updated
 import {Strategy} from "../../Strategy.sol";
 
+// Artifact paths for deploying from the deps folder, assumes that the command is run from
+// the project root.
+string constant vaultArtifact = "artifacts/Vault.json";
+
 // Base fixture deploying Vault
 contract StrategyFixture is ExtendedDSTest, stdCheats {
     using SafeERC20 for IERC20;
@@ -28,7 +32,8 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     IERC20 public weth;
     IERC20 public want;
 
-    mapping(string => address) tokenAddrs;
+    mapping(string => address) public tokenAddrs;
+    mapping(string => uint256) public tokenPrices;
 
     address public gov = 0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52;
     address public user = address(1);
@@ -39,13 +44,18 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     address public strategist = address(6);
     address public keeper = address(7);
 
+    uint256 public minFuzzAmt;
+    // @dev maximum amount of want tokens deposited based on @maxDollarNotional
+    uint256 public maxFuzzAmt;
+    // @dev maximum dollar amount of tokens to be deposited
+    uint256 public maxDollarNotional = 1_000_000;
+    // @dev maximum dollar amount of tokens for single large amount
+    uint256 public bigDollarNotional = 49_000_000;
+    // @dev used for non-fuzz tests to test large amounts
+    uint256 public bigAmount;
+
     // Used for integer approximation
     uint256 public constant DELTA = 10**5;
-
-    // Artifact paths for deploying from the deps folder, assumes that the command is run from
-    // the project root.
-    string constant vaultArtifact = "artifacts/Vault.json";
-
 
     // Strategy constants
     address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
@@ -57,13 +67,14 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     function setUp() public virtual {
         _setTokenAddrs();
+        _setTokenAddrs();
 
         // Choose a token from the tokenAddrs mapping, see _setTokenAddrs for options
+        string memory token = "DAI";
         weth = IERC20(tokenAddrs["WETH"]);
-        want = IERC20(tokenAddrs["DAI"]);
+        want = IERC20(tokenAddrs[token]);
 
         console.log("strategy deploying");
-
         deployVaultAndStrategy(
             address(want),
             gov,
@@ -76,6 +87,14 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             strategist
         );
         console.log("strategy deployed");
+
+        minFuzzAmt = 10**vault.decimals() / 10;
+        maxFuzzAmt =
+            uint256(maxDollarNotional / tokenPrices[token]) *
+            10**vault.decimals();
+        bigAmount =
+            uint256(bigDollarNotional / tokenPrices[token]) *
+            10**vault.decimals();
 
         // add more labels to make your traces readable
         vm_std_cheats.label(address(vault), "Vault");
@@ -153,8 +172,8 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         _vault = deployCode(vaultArtifact);
         vault = IVault(_vault);
 
+        console.log("vault");
         vm_std_cheats.prank(gov);
-        console.log("prank init");
         vault.initialize(
             _token,
             _gov,
@@ -164,6 +183,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             _guardian,
             _management
         );
+        console.log("vault initialized");
 
         vm_std_cheats.prank(_strategist);
         _strategy = deployStrategy(_vault);
@@ -184,5 +204,15 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         tokenAddrs["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         tokenAddrs["DAI"] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         tokenAddrs["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    }
+    
+    function _setTokenPrices() internal {
+        tokenPrices["WBTC"] = 60_000;
+        tokenPrices["WETH"] = 4_000;
+        tokenPrices["LINK"] = 20;
+        tokenPrices["YFI"] = 35_000;
+        tokenPrices["USDT"] = 1;
+        tokenPrices["USDC"] = 1;
+        tokenPrices["DAI"] = 1;
     }
 }
