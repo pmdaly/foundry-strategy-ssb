@@ -55,7 +55,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     uint256 public bigAmount;
 
     // Used for integer approximation
-    uint256 public constant DELTA = 10**5;
+    uint256 public constant DELTA = 10**3;
 
     // Strategy constants
     address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;

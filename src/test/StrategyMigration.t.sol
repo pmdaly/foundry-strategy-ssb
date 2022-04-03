@@ -11,10 +11,8 @@ contract StrategyMigrationTest is StrategyFixture {
     }
 
     function testMigration(uint256 _amount) public {
-        console.log("setup complete!");
         vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         // make sure user has enough want
-        vm_std_cheats.prank(user);
         tip(address(want), user, _amount);
 
         // Deposit to the vault and harvest
@@ -23,9 +21,11 @@ contract StrategyMigrationTest is StrategyFixture {
         vault.deposit(_amount);
         vm_std_cheats.stopPrank();
         assertEq(want.balanceOf(address(vault)), _amount);
-        //skip(1);
-        //vm_std_cheats.prank(gov);
-        //strategy.harvest();
-        //assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+
+        skip(1);
+        vm_std_cheats.prank(gov);
+        strategy.harvest();
+        console.log("finished harvesting");
+        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
     }
 }
