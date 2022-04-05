@@ -35,7 +35,7 @@ contract StrategyShutdown is StrategyFixture {
 
         // harvest and check asset migration
         skip(3600 * 7);
-        // do we need to mine here as the brownie version does?
+        vm_std_cheats.roll(block.number + 1);
         vm_std_cheats.prank(strategist);
         strategy.harvest();
         assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
@@ -46,5 +46,47 @@ contract StrategyShutdown is StrategyFixture {
         vm_std_cheats.prank(user);
         vault.withdraw();
         assertRelApproxEq(want.balanceOf(user), _amount, DELTA);
+    }
+
+    function testBasicShutdown(uint256 _amount) public {
+        // constrain fuzz tests
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+
+        // make sure user has enough want
+        tip(address(want), user, _amount);
+
+        // Deposit to the vault
+        vm_std_cheats.prank(user);
+        want.approve(address(vault), _amount);
+        vm_std_cheats.prank(user);
+        vault.deposit(_amount);
+        assertEq(want.balanceOf(address(vault)), _amount);
+
+        // harvest 1: send funds through the strat
+        skip(1);
+        vm_std_cheats.prank(strategist);
+        strategy.harvest();
+        vm_std_cheats.roll(block.number + 100);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+
+        // earn interest
+        skip(3600 * 24 * 1); // one day
+        vm_std_cheats.roll(block.number + 1);
+
+        // harvest 2: realize profits
+        vm_std_cheats.prank(strategist);
+        strategy.harvest();
+        skip(3600 * 6); // 6 hrs needed for profits to unlock
+        vm_std_cheats.roll(block.number + 1);
+
+
+        // set emergency
+        vm_std_cheats.prank(strategist);
+        strategy.setEmergencyExit();
+        vm_std_cheats.prank(strategist);
+        strategy.harvest();
+
+        assertEq(want.balanceOf(address(strategy)), 0);
+        assertRelApproxEq(want.balanceOf(address(vault)), _amount, DELTA);
     }
 }
