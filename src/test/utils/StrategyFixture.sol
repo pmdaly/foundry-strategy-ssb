@@ -44,6 +44,13 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     address public strategist = address(6);
     address public keeper = address(7);
 
+    // SSB test contstants
+    address public balWhale = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    address public ldoWhale = 0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c;
+    bytes32 public balWethPoolId = 0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014;
+    bytes32 public ldoWethPoolId = 0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8000200000000000000000019;
+    bytes32 public wethToken2PoolId = 0x0b09dea16768f0799065c475be02919503cb2a3500020000000000000000001a;
+
     uint256 public minFuzzAmt;
     // @dev maximum amount of want tokens deposited based on @maxDollarNotional
     uint256 public maxFuzzAmt;
@@ -200,6 +207,8 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         tokenAddrs["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         tokenAddrs["DAI"] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         tokenAddrs["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        tokenAddrs["BAL"] = 0xba100000625a3754423978a60c9317c58a424e3D;
+        tokenAddrs["LDO"] = 0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32;
     }
     
     function _setTokenPrices() internal {

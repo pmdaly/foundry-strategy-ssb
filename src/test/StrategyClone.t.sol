@@ -4,8 +4,12 @@ pragma solidity 0.8.12;
 import {StrategyFixture} from "./utils/StrategyFixture.sol";
 import {Strategy} from "../Strategy.sol";
 
+import {IAsset} from "../interfaces/BalancerV2.sol";
+import {IVault} from "../interfaces/Vault.sol";
+
 contract StrategyClone is StrategyFixture {
-    bytes32 internal poolIds;
+    bytes32[] internal poolIds;
+    IAsset[] internal addresses;
 
     function setUp() public override {
         super.setUp();
@@ -65,26 +69,46 @@ contract StrategyClone is StrategyFixture {
             minDepositPeriod
         );
 
+        Strategy.SwapSteps memory swapStepsBal = getSwapStep(true); 
+        Strategy.SwapSteps memory swapStepsLdo = getSwapStep(false); 
 
-        // place these in StrategyFixture
-        poolIds = [
-            0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014,
-            0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8000200000000000000000019
-        ];
-
-        //bytes32 balWethPoolId = 0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014;
-        //bytes32 wethToken2PoolId = 0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8000200000000000000000019;
-        Strategy.SwapSteps memory swapSteps = new Strategy.SwapSteps(
-            poolIds,
-            [tokenAddrs["BAL"], tokenAddrs["WETH"], tokenAddrs["USDC"]]
-        );
-
-        vm_std_cheats.prank(keeper);
+        vm_std_cheats.prank(gov);
         clonedStrat.setKeeper(keeper);
         vm_std_cheats.prank(management);
         clonedStrat.whitelistRewards(
-            tokenAddrs["BAL"], swapSteps
+            tokenAddrs["BAL"], swapStepsBal
         );
-        //vm_std_cheats.prank(management);
+        vm_std_cheats.prank(management);
+        clonedStrat.whitelistRewards(
+            tokenAddrs["LDO"], swapStepsLdo
+        );
+
+        vm_std_cheats.prank(gov);
+        IVault(vault2).addStrategy(
+            address(clonedStrat), 
+            10_000,
+            0,
+            2 ** 256 - 1,
+            1_000
+        );
+    }
+
+    function getSwapStep(bool balancerSwap) public returns (Strategy.SwapSteps memory) {
+        if(balancerSwap) {
+            poolIds = [balWethPoolId, wethToken2PoolId];
+            addresses = [
+                IAsset(tokenAddrs["BAL"]),
+                IAsset(tokenAddrs["WETH"]),
+                IAsset(tokenAddrs["USDC"])
+            ];
+        } else {
+            poolIds = [ldoWethPoolId, wethToken2PoolId];
+            addresses = [
+                IAsset(tokenAddrs["LDO"]),
+                IAsset(tokenAddrs["WETH"]),
+                IAsset(tokenAddrs["USDC"])
+            ];
+        }
+        return Strategy.SwapSteps(poolIds, addresses);
     }
 }
