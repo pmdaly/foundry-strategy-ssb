@@ -216,6 +216,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         tokenPrices["WETH"] = 4_000;
         tokenPrices["LINK"] = 20;
         tokenPrices["YFI"] = 35_000;
+        tokenPrices["LDO"] = 4;
         tokenPrices["USDT"] = 1;
         tokenPrices["USDC"] = 1;
         tokenPrices["DAI"] = 1;
