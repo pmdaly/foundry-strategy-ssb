@@ -6,10 +6,14 @@ import {Strategy} from "../Strategy.sol";
 
 import {IAsset} from "../interfaces/BalancerV2.sol";
 import {IVault} from "../interfaces/Vault.sol";
+import {ILido} from "../interfaces/ILido.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {console} from "./utils/console.sol";
 
+
+// vault, token: use usdc
+// vault2, token2 use dai
 contract StrategyClone is StrategyFixture {
     bytes32[] internal poolIds;
     IAsset[] internal addresses;
@@ -18,6 +22,7 @@ contract StrategyClone is StrategyFixture {
         super.setUp();
     }
 
+    // update to prefer expectRevert
     function testFailNoReinitializing() public {
         strategy.initialize(
             address(vault),
@@ -33,12 +38,19 @@ contract StrategyClone is StrategyFixture {
         );
     }
 
+    // vault, token: use usdc
+    // vault2, token2 use dai
+    // use 2 amounts, one for token 1 and one for token 2
+    //function testClone(uint256 _amountToken1, uint256 _amountToken2) public {
     function testClone(uint256 _amount) public {
         // constrain fuzz tests
         vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
 
+        // may need 
+        _amount = 10_000_000 * 10**6;
+
         address vault2 = deployVault(
-            tokenAddrs["USDC"],
+            tokenAddrs["DAI"],
             gov,
             rewards,
             "",
@@ -106,7 +118,7 @@ contract StrategyClone is StrategyFixture {
 
         // test_profitable_harvest
         runProfitableHarvest(
-            tokenAddrs["USDC"],
+            tokenAddrs["DAI"],
             vault2,
             clonedStrat,
             _amount
@@ -117,18 +129,24 @@ contract StrategyClone is StrategyFixture {
         bool balancerSwap
     ) internal returns (Strategy.SwapSteps memory) {
         if(balancerSwap) {
-            poolIds = [balWethPoolId, wethToken2PoolId];
+            poolIds = [
+                tokenPools["BAL_WETH_POOL"],
+                tokenPools["WETH_DAI_POOL"]
+            ];
             addresses = [
                 IAsset(tokenAddrs["BAL"]),
                 IAsset(tokenAddrs["WETH"]),
-                IAsset(tokenAddrs["USDC"])
+                IAsset(tokenAddrs["DAI"])
             ];
         } else {
-            poolIds = [ldoWethPoolId, wethToken2PoolId];
+            poolIds = [
+                tokenPools["LDO_WETH_POOL"],
+                tokenPools["WETH_DAI_POOL"]
+            ];
             addresses = [
                 IAsset(tokenAddrs["LDO"]),
                 IAsset(tokenAddrs["WETH"]),
-                IAsset(tokenAddrs["USDC"])
+                IAsset(tokenAddrs["DAI"])
             ];
         }
         return Strategy.SwapSteps(poolIds, addresses);
@@ -162,16 +180,24 @@ contract StrategyClone is StrategyFixture {
         
         uint256 beforePricePerShare = IVault(_vault).pricePerShare();
 
-        // airdrop
-        tip(tokenAddrs["BAL"], address(_strategy), 100 * 10 ** 18);
-        tip(tokenAddrs["LDO"], address(_strategy), 100 * 10 ** 18);
+        // airdrop some assets to strategy
+        vm_std_cheats.prank(balWhale);
+        IERC20(tokenAddrs["BAL"]).approve(address(_strategy), 2 ** 256 - 1);
+        vm_std_cheats.prank(balWhale);
+        IERC20(tokenAddrs["BAL"]).transfer(address(_strategy), 100 * 10 ** 18);
+
+        vm_std_cheats.prank(ldoWhale);
+        IERC20(tokenAddrs["LDO"]).approve(address(_strategy), 2 ** 256 - 1);
+        vm_std_cheats.prank(ldoWhale);
+        IERC20(tokenAddrs["LDO"]).transfer(address(_strategy), 100 * 10 ** 18);
 
         // harvest 2: realize profit
         skip(1);
-        vm_std_cheats.prank(strategist);
+        console.log("before harvest 2");
+        vm_std_cheats.startPrank(strategist);
         _strategy.harvest();
-        skip(3600 * 6);
-        vm_std_cheats.roll(block.number + 1);
+        console.log("after harvest 2");
+        skip(6 hours);
         uint256 profit = _strategy.estimatedTotalAssets();
 
         assertGt(_strategy.estimatedTotalAssets() + profit, _amount);
