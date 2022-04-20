@@ -34,6 +34,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     mapping(string => address) public tokenAddrs;
     mapping(string => uint256) public tokenPrices;
+    mapping(string => bytes32) public tokenPools;
 
     address public gov = 0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52;
     address public user = address(1);
@@ -47,9 +48,6 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     // SSB test contstants
     address public balWhale = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     address public ldoWhale = 0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c;
-    bytes32 public balWethPoolId = 0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014;
-    bytes32 public ldoWethPoolId = 0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8000200000000000000000019;
-    bytes32 public wethToken2PoolId = 0x0b09dea16768f0799065c475be02919503cb2a3500020000000000000000001a;
 
     uint256 public minFuzzAmt;
     // @dev maximum amount of want tokens deposited based on @maxDollarNotional
@@ -75,9 +73,13 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     function setUp() public virtual {
         _setTokenAddrs();
         _setTokenPrices();
+        _setTokenPools();
 
         // Choose a token from the tokenAddrs mapping, see _setTokenAddrs for options
-        string memory token = "DAI";
+        // from SSB
+        // token = usdc
+        // token2 = dai
+        string memory token = "USDC";
         weth = IERC20(tokenAddrs["WETH"]);
         want = IERC20(tokenAddrs[token]);
 
@@ -203,19 +205,27 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         tokenAddrs["WBTC"] = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
         tokenAddrs["YFI"] = 0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e;
         tokenAddrs["WETH"] = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-        tokenAddrs["LINK"] = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
-        tokenAddrs["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-        tokenAddrs["DAI"] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        tokenAddrs["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         tokenAddrs["BAL"] = 0xba100000625a3754423978a60c9317c58a424e3D;
+        tokenAddrs["LINK"] = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
         tokenAddrs["LDO"] = 0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32;
+        tokenAddrs["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        tokenAddrs["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        tokenAddrs["DAI"] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    }
+
+    function _setTokenPools() internal {
+        tokenPools["WETH_USDC_POOL"] = 0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8000200000000000000000019;
+        tokenPools["WETH_DAI_POOL"] = 0x0b09dea16768f0799065c475be02919503cb2a3500020000000000000000001a;
+        tokenPools["BAL_WETH_POOL"] = 0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014;
+        tokenPools["LDO_WETH_POOL"] = 0xbf96189eee9357a95c7719f4f5047f76bde804e5000200000000000000000087;
     }
     
     function _setTokenPrices() internal {
         tokenPrices["WBTC"] = 60_000;
-        tokenPrices["WETH"] = 4_000;
-        tokenPrices["LINK"] = 20;
         tokenPrices["YFI"] = 35_000;
+        tokenPrices["WETH"] = 4_000;
+        tokenPrices["BAL"] = 20;
+        tokenPrices["LINK"] = 15;
         tokenPrices["LDO"] = 4;
         tokenPrices["USDT"] = 1;
         tokenPrices["USDC"] = 1;
